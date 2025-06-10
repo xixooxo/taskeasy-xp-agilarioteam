@@ -1,0 +1,30 @@
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main # Jalankan workflow ini setiap kali ada push ke branch 'main'
+  pull_request:
+    branches:
+      - main # Jalankan workflow ini setiap kali ada Pull Request ke branch 'main'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # Jalankan job ini di environment Ubuntu terbaru
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4 # Mengambil kode dari repository GitHub
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Gunakan Node.js versi 20 (sesuaikan dengan versi Node.js di lokalmu jika berbeda)
+          cache: 'npm' # Menggunakan cache npm untuk mempercepat instalasi dependensi
+
+      - name: Install Dependencies
+        run: npm install # Menginstal semua dependensi proyek (yang ada di package.json)
+
+      - name: Run Tests
+        run: npm test # Menjalankan script test yang ada di package.json (yaitu 'jest --watchAll')
