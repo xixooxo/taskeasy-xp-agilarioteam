@@ -1,103 +1,124 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState, useEffect } from "react"
+import { TaskForm } from "@/components/task-form"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CheckSquare, Plus, BarChart3 } from "lucide-react" // BarChart3 akan dihapus
+
+export interface Task {
+  id: string
+  title: string
+  description: string
+  priority: "low" | "medium" | "high"
+  status: "to-do" | "in-progress" | "done"
+  createdAt: string
+  updatedAt: string
+}
+
+export default function TaskEasyApp() {
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+
+  // Load tasks from localStorage on component mount
+  useEffect(() => {
+    const savedTasks = localStorage.getItem("taskeasy-tasks")
+    if (savedTasks) {
+      try {
+        setTasks(JSON.parse(savedTasks))
+      } catch (error) {
+        console.error("Error loading tasks from localStorage:", error)
+      }
+    }
+  }, [])
+
+  // Save tasks to localStorage whenever tasks change
+  useEffect(() => {
+    localStorage.setItem("taskeasy-tasks", JSON.stringify(tasks))
+  }, [tasks])
+
+  const addTask = (taskData: Omit<Task, "id" | "createdAt" | "updatedAt">) => {
+    const newTask: Task = {
+      ...taskData,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    setTasks((prev) => [...prev, newTask])
+  }
+
+  const updateTask = (id: string, updates: Partial<Task>) => {
+    setTasks((prev) =>
+      prev.map((task) => (task.id === id ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task)),
+    )
+    setEditingTask(null)
+  }
+
+  const deleteTask = (id: string) => {
+    setTasks((prev) => prev.filter((task) => task.id !== id))
+  }
+
+  const startEditing = (task: Task) => {
+    setEditingTask(task)
+  }
+
+  const cancelEditing = () => {
+    setEditingTask(null)
+  }
+  
+
+  const sortedTasks = [...tasks].sort((a, b) => {
+    const priorityOrder = { high: 3, medium: 2, low: 1 }
+    const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority]
+    if (priorityDiff !== 0) return priorityDiff
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <CheckSquare className="h-8 w-8 text-indigo-600" />
+            <h1 className="text-4xl font-bold text-gray-900">TaskEasy</h1>
+          </div>
+          <p className="text-lg text-gray-600">Simple task management for agile teams</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+
+        <Tabs defaultValue="add" className="space-y-6"> {/* Default value diubah ke "add" */}
+          <TabsList className="grid w-full grid-cols-1 max-w-sm mx-auto"> {/* Grid hanya 1 kolom */}
+            <TabsTrigger value="add" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add/Edit Task
+            </TabsTrigger>
+
+          </TabsList>
+
+
+          <TabsContent value="add">
+            <Card>
+              <CardHeader>
+                <CardTitle>{editingTask ? "Edit Task" : "Add New Task"}</CardTitle>
+                <CardDescription>
+                  {editingTask
+                    ? "Update the task details below"
+                    : "Create a new task with title, description, and priority"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TaskForm
+                  onSubmit={editingTask ? (data) => updateTask(editingTask.id, data) : addTask}
+                  initialData={editingTask}
+                  onCancel={editingTask ? cancelEditing : undefined}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+        </Tabs>
+      </div>
     </div>
-  );
+  )
 }
