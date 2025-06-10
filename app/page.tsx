@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { TaskForm } from "@/components/task-form"
 import { TaskList } from "@/components/task-list"
 import { TaskStats } from "@/components/task-stats"
+import { TaskSearchFilter } from "@/components/task-search-filter"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckSquare, Plus, BarChart3 } from "lucide-react"
@@ -21,6 +22,11 @@ export interface Task {
 export default function TaskEasyApp() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+
+  // Search & Filter states
+  const [searchTerm, setSearchTerm] = useState("")
+  const [priorityFilter, setPriorityFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState("all")
 
   // Load tasks from localStorage on component mount
   useEffect(() => {
@@ -68,13 +74,48 @@ export default function TaskEasyApp() {
     setEditingTask(null)
   }
 
-  // Sort tasks by priority (high -> medium -> low) and then by creation date
-  const sortedTasks = [...tasks].sort((a, b) => {
-    const priorityOrder = { high: 3, medium: 2, low: 1 }
-    const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority]
-    if (priorityDiff !== 0) return priorityDiff
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  })
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("")
+    setPriorityFilter("all")
+    setStatusFilter("all")
+  }
+
+  // Filter and search tasks
+  const filteredTasks = useMemo(() => {
+    let filtered = [...tasks]
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (task) =>
+          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          task.description.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    }
+
+    // Apply priority filter
+    if (priorityFilter !== "all") {
+      filtered = filtered.filter((task) => task.priority === priorityFilter)
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((task) => task.status === statusFilter)
+    }
+
+    return filtered
+  }, [tasks, searchTerm, priorityFilter, statusFilter])
+
+  // Sort filtered tasks by priority (high -> medium -> low) and then by creation date
+  const sortedTasks = useMemo(() => {
+    return [...filteredTasks].sort((a, b) => {
+      const priorityOrder = { high: 3, medium: 2, low: 1 }
+      const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority]
+      if (priorityDiff !== 0) return priorityDiff
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+  }, [filteredTasks])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -105,10 +146,27 @@ export default function TaskEasyApp() {
           </TabsList>
 
           <TabsContent value="tasks">
+            {/* Search & Filter Component */}
+            <TaskSearchFilter
+              onSearchChange={setSearchTerm}
+              onPriorityFilter={setPriorityFilter}
+              onStatusFilter={setStatusFilter}
+              onClearFilters={clearFilters}
+              searchTerm={searchTerm}
+              priorityFilter={priorityFilter}
+              statusFilter={statusFilter}
+              totalTasks={tasks.length}
+              filteredCount={filteredTasks.length}
+            />
+
             <Card>
               <CardHeader>
                 <CardTitle>Task List</CardTitle>
-                <CardDescription>Manage your tasks sorted by priority. {tasks.length} total tasks.</CardDescription>
+                <CardDescription>
+                  {filteredTasks.length !== tasks.length
+                    ? `Showing ${filteredTasks.length} of ${tasks.length} tasks`
+                    : `${tasks.length} total tasks`}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <TaskList
@@ -149,5 +207,3 @@ export default function TaskEasyApp() {
     </div>
   )
 }
-
-
