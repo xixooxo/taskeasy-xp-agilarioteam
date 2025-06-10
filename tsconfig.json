@@ -28,13 +28,15 @@
       ]
     },
     "forceConsistentCasingInFileNames": true,
-    "target": "ES2017"
+    "target": "ES2017",
+    "types": ["jest", "node", "@testing-library/jest-dom"] // BARIS INI DITAMBAHKAN/DIUBAH
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "jest.setup.js" // BARIS INI DITAMBAHKAN
   ],
   "exclude": [
     "node_modules"

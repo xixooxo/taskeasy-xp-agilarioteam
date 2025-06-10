@@ -124,7 +124,7 @@ export default function TaskEasyApp() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <CheckSquare className="h-8 w-8 text-indigo-600" />
-            <h1 className="text-4xl font-bold text-gray-900">TaskEasy</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Aplikasi TaskEasy</h1>
           </div>
           <p className="text-lg text-gray-600">Simple task management for agile teams</p>
         </div>
