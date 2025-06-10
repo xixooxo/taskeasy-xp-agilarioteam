@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { TaskForm } from "@/components/task-form"
+import { TaskList } from "@/components/task-list"
+import { TaskStats } from "@/components/task-stats"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CheckSquare, Plus, BarChart3 } from "lucide-react" // BarChart3 akan dihapus
+import { CheckSquare, Plus, BarChart3 } from "lucide-react"
 
 export interface Task {
   id: string
@@ -65,8 +67,8 @@ export default function TaskEasyApp() {
   const cancelEditing = () => {
     setEditingTask(null)
   }
-  
 
+  // Sort tasks by priority (high -> medium -> low) and then by creation date
   const sortedTasks = [...tasks].sort((a, b) => {
     const priorityOrder = { high: 3, medium: 2, low: 1 }
     const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority]
@@ -86,16 +88,38 @@ export default function TaskEasyApp() {
           <p className="text-lg text-gray-600">Simple task management for agile teams</p>
         </div>
 
-
-        <Tabs defaultValue="add" className="space-y-6"> {/* Default value diubah ke "add" */}
-          <TabsList className="grid w-full grid-cols-1 max-w-sm mx-auto"> {/* Grid hanya 1 kolom */}
+        <Tabs defaultValue="tasks" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
+            <TabsTrigger value="tasks" className="flex items-center gap-2">
+              <CheckSquare className="h-4 w-4" />
+              Tasks
+            </TabsTrigger>
             <TabsTrigger value="add" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Add/Edit Task
+              Add Task
             </TabsTrigger>
-
+            <TabsTrigger value="stats" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Stats
+            </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="tasks">
+            <Card>
+              <CardHeader>
+                <CardTitle>Task List</CardTitle>
+                <CardDescription>Manage your tasks sorted by priority. {tasks.length} total tasks.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TaskList
+                  tasks={sortedTasks}
+                  onEdit={startEditing}
+                  onDelete={deleteTask}
+                  onStatusChange={(id, status) => updateTask(id, { status })}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="add">
             <Card>
@@ -117,8 +141,13 @@ export default function TaskEasyApp() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="stats">
+            <TaskStats tasks={tasks} />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
   )
 }
+
+
