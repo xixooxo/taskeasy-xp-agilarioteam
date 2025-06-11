@@ -89,7 +89,13 @@ export function TaskList({ tasks, onEdit, onDelete, onStatusChange }: TaskListPr
                 <p className="text-gray-600 mt-1 line-clamp-2">{task.description}</p>
               </div>
               <div className="flex gap-2 flex-shrink-0">
-                <Button variant="outline" size="sm" onClick={() => onEdit(task)} className="h-8 w-8 p-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(task)}
+                  className="h-8 w-8 p-0"
+                  data-testid="edit-button"
+                >
                   <Edit className="h-4 w-4" />
                 </Button>
                 <Button
@@ -97,6 +103,7 @@ export function TaskList({ tasks, onEdit, onDelete, onStatusChange }: TaskListPr
                   size="sm"
                   onClick={() => onDelete(task.id)}
                   className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  data-testid="delete-button"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -132,7 +139,8 @@ export function TaskList({ tasks, onEdit, onDelete, onStatusChange }: TaskListPr
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">Status:</span>
                 <Select value={task.status} onValueChange={(value: Task["status"]) => onStatusChange(task.id, value)}>
-                  <SelectTrigger className="w-32 h-8">
+                  {/* Pindahkan data-testid ke SelectTrigger */}
+                  <SelectTrigger className="w-32 h-8" data-testid="status-select">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

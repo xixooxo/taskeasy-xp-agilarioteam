@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 import { TaskForm } from '../components/task-form'
 import type { Task } from '@/app/page'
 
-// Mock shadcn/ui Select component TANPA menggunakan select element
 jest.mock('@/components/ui/select', () => ({
   Select: ({ children, value, onValueChange }: any) => (
     <div data-testid="select-component" data-value={value}>

@@ -22,6 +22,7 @@ export interface Task {
 export default function TaskEasyApp() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [activeTab, setActiveTab] = useState("tasks")
 
   // Search & Filter states
   const [searchTerm, setSearchTerm] = useState("")
@@ -53,6 +54,7 @@ export default function TaskEasyApp() {
       updatedAt: new Date().toISOString(),
     }
     setTasks((prev) => [...prev, newTask])
+    setActiveTab("tasks") // Switch back to tasks tab after adding
   }
 
   const updateTask = (id: string, updates: Partial<Task>) => {
@@ -60,6 +62,7 @@ export default function TaskEasyApp() {
       prev.map((task) => (task.id === id ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task)),
     )
     setEditingTask(null)
+    setActiveTab("tasks") // Switch back to tasks tab after updating
   }
 
   const deleteTask = (id: string) => {
@@ -68,10 +71,12 @@ export default function TaskEasyApp() {
 
   const startEditing = (task: Task) => {
     setEditingTask(task)
+    setActiveTab("add") // Automatically switch to add tab when editing
   }
 
   const cancelEditing = () => {
     setEditingTask(null)
+    setActiveTab("tasks") // Switch back to tasks tab when canceling
   }
 
   // Clear all filters
@@ -129,7 +134,7 @@ export default function TaskEasyApp() {
           <p className="text-lg text-gray-600">Simple task management for agile teams</p>
         </div>
 
-        <Tabs defaultValue="tasks" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <CheckSquare className="h-4 w-4" />
@@ -137,7 +142,7 @@ export default function TaskEasyApp() {
             </TabsTrigger>
             <TabsTrigger value="add" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Add Task
+              {editingTask ? "Edit Task" : "Add Task"}
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />

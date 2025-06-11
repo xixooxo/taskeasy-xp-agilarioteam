@@ -1,48 +1,46 @@
-import '@testing-library/jest-dom'
+// jest.setup.js (atau jest.setup.ts)
+// Ini adalah file setup global Anda
 
-// Disable accessibility checks untuk select elements
-import { configure } from '@testing-library/react'
+import "@testing-library/jest-dom";
+import { jest } from "@jest/globals";
 
-configure({
-  getElementError: (message, container) => {
-    // Skip accessibility errors untuk select elements
-    if (message && message.includes('accessible name')) {
-      return new Error('Accessibility check skipped for testing')
+// Mock next/navigation (jika Anda menggunakan Next.js)
+jest.mock("next/navigation", () => ({
+  useRouter() {
+    return {
+      push: jest.fn(),
+      replace: jest.fn(),
+      prefetch: jest.fn(),
+      back: jest.fn(),
     }
-    return new Error(message)
-  }
-})
+  },
+  usePathname() {
+    return ""
+  },
+  useSearchParams() {
+    return new URLSearchParams()
+  },
+}));
 
-// Mock untuk Select component dari shadcn/ui
-Object.defineProperty(window, 'matchMedia', {
+// Polyfill untuk PointerEvent methods (penting untuk Radix UI)
+if (typeof window.HTMLElement.prototype.hasPointerCapture === 'undefined') {
+  window.HTMLElement.prototype.hasPointerCapture = () => false;
+}
+if (typeof window.HTMLElement.prototype.releasePointerCapture === 'undefined') {
+  window.HTMLElement.prototype.releasePointerCapture = () => {};
+}
+
+// Mock for matchMedia (jika digunakan oleh komponen UI seperti Radix)
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
+    addListener: jest.fn(), // Deprecated
+    removeListener: jest.fn(), // Deprecated
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
   })),
-})
-
-// Mock ResizeObserver
-global.ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}))
-
-// Mock IntersectionObserver
-global.IntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}))
-
-// Mock hasPointerCapture untuk mengatasi Radix UI error
-Element.prototype.hasPointerCapture = jest.fn()
-Element.prototype.setPointerCapture = jest.fn()
-Element.prototype.releasePointerCapture = jest.fn()
+});
