@@ -1,30 +1,62 @@
-# .github/workflows/ci.yml
-name: CI/CD Pipeline
+name: TaskEasy CI/CD Pipeline
 
 on:
   push:
     branches:
-      - main # Jalankan workflow ini setiap kali ada push ke branch 'main'
+      - main
+      - develop # Tambahkan develop branch untuk XP workflow
   pull_request:
     branches:
-      - main # Jalankan workflow ini setiap kali ada Pull Request ke branch 'main'
+      - main
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest # Jalankan job ini di environment Ubuntu terbaru
+  test:
+    runs-on: ubuntu-latest
+    name: Test & Quality Checks
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4 # Mengambil kode dari repository GitHub
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Gunakan Node.js versi 20 (sesuaikan dengan versi Node.js di lokalmu jika berbeda)
-          cache: 'npm' # Menggunakan cache npm untuk mempercepat instalasi dependensi
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install # Menginstal semua dependensi proyek (yang ada di package.json)
+        run: npm ci # Lebih cepat dan reliable untuk CI
 
-      - name: Run Tests
-        run: npm test # Menjalankan script test yang ada di package.json (yaitu 'jest --watchAll')
+      - name: Run Linting
+        run: npm run lint # Code quality check
+
+      - name: Run Tests with Coverage
+        run: npm run test:ci # Test tanpa watch mode + coverage
+
+      - name: Upload Coverage Reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Build Application
+        run: npm run build # Pastikan aplikasi bisa di-build
+
+  deploy:
+    needs: test # Deploy hanya jika test berhasil
+    runs-on: ubuntu-latest
+    name: Deploy to Vercel
+    if: github.ref == 'refs/heads/main' # Deploy hanya dari main branch
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.ORG_ID }}
+          vercel-project-id: ${{ secrets.PROJECT_ID }}
+          working-directory: ./
